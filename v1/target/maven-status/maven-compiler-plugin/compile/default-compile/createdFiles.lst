@@ -1,2 +1,7 @@
+com\mycompany\v1\resources\TweetResource.class
+entities\Tweethashtag.class
 com\mycompany\v1\JAXRSConfiguration.class
+entities\Hashtag.class
+entities\User.class
 com\mycompany\v1\resources\JavaEE8Resource.class
+entities\Tweet.class

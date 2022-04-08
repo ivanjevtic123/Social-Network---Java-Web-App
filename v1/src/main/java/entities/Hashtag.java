@@ -6,18 +6,22 @@
 package entities;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -34,8 +38,8 @@ public class Hashtag implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
@@ -43,8 +47,8 @@ public class Hashtag implements Serializable {
     @Size(min = 1, max = 45)
     @Column(name = "hashname")
     private String hashname;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idTag")
-    private Tweethashtag tweethashtag;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "idTag")
+    private List<Tweethashtag> tweethashtagList;
 
     public Hashtag() {
     }
@@ -74,12 +78,13 @@ public class Hashtag implements Serializable {
         this.hashname = hashname;
     }
 
-    public Tweethashtag getTweethashtag() {
-        return tweethashtag;
+    @XmlTransient
+    public List<Tweethashtag> getTweethashtagList() {
+        return tweethashtagList;
     }
 
-    public void setTweethashtag(Tweethashtag tweethashtag) {
-        this.tweethashtag = tweethashtag;
+    public void setTweethashtagList(List<Tweethashtag> tweethashtagList) {
+        this.tweethashtagList = tweethashtagList;
     }
 
     @Override
