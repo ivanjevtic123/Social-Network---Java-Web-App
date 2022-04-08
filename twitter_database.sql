@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS `hashtag`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hashtag` (
   `id` int(11) NOT NULL,
-  `hashname` varchar(45) DEFAULT NULL,
+  `hashname` varchar(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `hashname_UNIQUE` (`hashname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -52,7 +52,6 @@ CREATE TABLE `tweet` (
   `id` int(11) NOT NULL,
   `content` varchar(280) NOT NULL,
   `created_at` datetime NOT NULL,
-  `tweetcol` varchar(45) DEFAULT NULL,
   `idUser` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_tweet_idUser_idx` (`idUser`),
@@ -78,8 +77,8 @@ DROP TABLE IF EXISTS `tweethashtag`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tweethashtag` (
   `id` int(11) NOT NULL,
-  `idTag` int(11) DEFAULT NULL,
-  `idTwe` int(11) DEFAULT NULL,
+  `idTag` int(11) NOT NULL,
+  `idTwe` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idPost_UNIQUE` (`idTag`),
   UNIQUE KEY `idTwe_UNIQUE` (`idTwe`),
@@ -130,4 +129,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-08 23:15:51
+-- Dump completed on 2022-04-08 23:53:31

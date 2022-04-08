@@ -7,6 +7,7 @@ package entities;
 
 import java.io.Serializable;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -37,10 +38,12 @@ public class Hashtag implements Serializable {
     @NotNull
     @Column(name = "id")
     private Integer id;
-    @Size(max = 45)
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 45)
     @Column(name = "hashname")
     private String hashname;
-    @OneToOne(mappedBy = "idTag")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idTag")
     private Tweethashtag tweethashtag;
 
     public Hashtag() {
@@ -48,6 +51,11 @@ public class Hashtag implements Serializable {
 
     public Hashtag(Integer id) {
         this.id = id;
+    }
+
+    public Hashtag(Integer id, String hashname) {
+        this.id = id;
+        this.hashname = hashname;
     }
 
     public Integer getId() {

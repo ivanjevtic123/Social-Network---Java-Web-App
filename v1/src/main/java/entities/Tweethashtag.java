@@ -37,10 +37,10 @@ public class Tweethashtag implements Serializable {
     @Column(name = "id")
     private Integer id;
     @JoinColumn(name = "idTag", referencedColumnName = "id")
-    @OneToOne
+    @OneToOne(optional = false)
     private Hashtag idTag;
     @JoinColumn(name = "idTwe", referencedColumnName = "id")
-    @OneToOne
+    @OneToOne(optional = false)
     private Tweet idTwe;
 
     public Tweethashtag() {

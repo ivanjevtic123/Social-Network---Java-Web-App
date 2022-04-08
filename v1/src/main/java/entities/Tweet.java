@@ -8,6 +8,7 @@ package entities;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -34,8 +35,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Tweet.findAll", query = "SELECT t FROM Tweet t"),
     @NamedQuery(name = "Tweet.findById", query = "SELECT t FROM Tweet t WHERE t.id = :id"),
     @NamedQuery(name = "Tweet.findByContent", query = "SELECT t FROM Tweet t WHERE t.content = :content"),
-    @NamedQuery(name = "Tweet.findByCreatedAt", query = "SELECT t FROM Tweet t WHERE t.createdAt = :createdAt"),
-    @NamedQuery(name = "Tweet.findByTweetcol", query = "SELECT t FROM Tweet t WHERE t.tweetcol = :tweetcol")})
+    @NamedQuery(name = "Tweet.findByCreatedAt", query = "SELECT t FROM Tweet t WHERE t.createdAt = :createdAt")})
 public class Tweet implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -54,10 +54,7 @@ public class Tweet implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    @Size(max = 45)
-    @Column(name = "tweetcol")
-    private String tweetcol;
-    @OneToOne(mappedBy = "idTwe")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idTwe")
     private Tweethashtag tweethashtag;
     @JoinColumn(name = "idUser", referencedColumnName = "id")
     @ManyToOne(optional = false)
@@ -98,14 +95,6 @@ public class Tweet implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public String getTweetcol() {
-        return tweetcol;
-    }
-
-    public void setTweetcol(String tweetcol) {
-        this.tweetcol = tweetcol;
     }
 
     public Tweethashtag getTweethashtag() {
