@@ -1,5 +1,7 @@
 schemas\PostTweetReq.class
+schemas\Error.class
 com\mycompany\v1\resources\TweetResource.class
+schemas\TweetResp.class
 entities\Tweethashtag.class
 com\mycompany\v1\JAXRSConfiguration.class
 entities\Hashtag.class

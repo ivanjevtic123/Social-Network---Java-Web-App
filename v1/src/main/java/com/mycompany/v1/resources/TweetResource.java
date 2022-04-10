@@ -136,6 +136,10 @@ public class TweetResource {
             .build();
     }
     
+    
+    
+    
+    
     @DELETE
     @Path("{tweetId}")
     public Response deleteTweet(@Context HttpHeaders header, @PathParam("tweetId") String tweetId) {
@@ -181,18 +185,21 @@ public class TweetResource {
                 .build();
         }
         
-        List<Tweethashtag> tweethashtagList = tweet.getTweethashtagList();
+        List<Tweethashtag> thtList = em.createQuery("SELECT tht FROM Tweethashtag tht WHERE tht.idTwe = :id", Tweethashtag.class).setParameter("id", tweet).getResultList();
         
-        List<String> hashtags = new ArrayList<>();
-        for (Tweethashtag tweethashtag : tweethashtagList) {
-            Hashtag tag = em.createNamedQuery("Hashtag.findById", Hashtag.class).setParameter("id", tweethashtag.getIdTag().getId()).getSingleResult();
-            hashtags.add(tag.getHashname());
+        String []htArr = new String[5];
+        int i = 0;
+        for (Tweethashtag tweethashtag : thtList) {
+            Hashtag tag = tweethashtag.getIdTag();
+            htArr[i] = tag.getHashname();
+            i++;
         }
+        
         
         TweetResp tweetResp = new TweetResp();
         tweetResp.setTweetId(tweet.getId());
         tweetResp.setTweetBody(tweet.getContent());
-        tweetResp.setHashTags(hashtags.toArray(new String[hashtags.size()]));
+        tweetResp.setHashTags(htArr);
         tweetResp.setCreatedBy(username);
         tweetResp.setCreatedAt(tweet.getCreatedAt().toString());
         
