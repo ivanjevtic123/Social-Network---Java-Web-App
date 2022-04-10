@@ -7,6 +7,7 @@ package com.mycompany.v1.resources;
 
 import entities.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import schemas.*;
 import javax.ejb.Stateless;
@@ -19,6 +20,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.Date;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.PathParam;
 
 /**
  *
@@ -132,6 +135,76 @@ public class TweetResource {
             .status(201).entity(tweetResp)
             .build();
     }
+    
+    @DELETE
+    @Path("{tweetId}")
+    public Response deleteTweet(@Context HttpHeaders header, @PathParam("tweetId") String tweetId) {
+        List<String> headerList = header.getRequestHeader("X-Username");
+        String username;
+        
+        //Username header check:
+        if(headerList == null || headerList.size() <= 0) {
+            schemas.Error error1 = new schemas.Error();
+            error1.setHttpCode(401);
+            error1.setErrorCode(401);
+            error1.setMessage("Username header is missing!");
+            
+            return Response
+                .status(401).entity(error1)
+                .build();
+        }
+        
+        username = headerList.get(0);
+        User user = em.createNamedQuery("User.findByUsername", User.class).setParameter("username", username).getSingleResult();         
+        
+        Tweet tweet = em.find(Tweet.class, Integer.parseInt(tweetId));
+        if(tweet == null) {
+            schemas.Error error3 = new schemas.Error();
+            error3.setHttpCode(404);
+            error3.setErrorCode(404);
+            error3.setMessage("Tweet not found!");
+            
+            return Response
+                .status(404).entity(error3)
+                .build();
+        }
+        
+        //Somebody elses tweet check:
+        if(tweet.getIdUser() != user) {
+            schemas.Error error2 = new schemas.Error();
+            error2.setHttpCode(403);
+            error2.setErrorCode(403);
+            error2.setMessage("Somebody elses tweet!");
+            
+            return Response
+                .status(403).entity(error2)
+                .build();
+        }
+        
+        List<Tweethashtag> tweethashtagList = tweet.getTweethashtagList();
+        
+        List<String> hashtags = new ArrayList<>();
+        for (Tweethashtag tweethashtag : tweethashtagList) {
+            Hashtag tag = em.createNamedQuery("Hashtag.findById", Hashtag.class).setParameter("id", tweethashtag.getIdTag().getId()).getSingleResult();
+            hashtags.add(tag.getHashname());
+        }
+        
+        TweetResp tweetResp = new TweetResp();
+        tweetResp.setTweetId(tweet.getId());
+        tweetResp.setTweetBody(tweet.getContent());
+        tweetResp.setHashTags(hashtags.toArray(new String[hashtags.size()]));
+        tweetResp.setCreatedBy(username);
+        tweetResp.setCreatedAt(tweet.getCreatedAt().toString());
+        
+        em.remove(tweet);
+        return Response
+            .status(200).entity(tweetResp)
+            .build();
+        
+    }
+    
+    
+    
     
     
 }
