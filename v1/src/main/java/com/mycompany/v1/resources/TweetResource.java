@@ -20,8 +20,18 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.Date;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 /**
  *
@@ -37,8 +47,7 @@ public class TweetResource {
     @POST
     public Response postNewTweet(@Context HttpHeaders header, PostTweetReq postTweetReq){ //http://localhost:8080/v1/v1/tweets
         List<String> headerList = header.getRequestHeader("X-Username");
-        String username;
-        
+        String username; 
         
         //Username header check:
         if(headerList == null || headerList.size() <= 0) {
@@ -48,7 +57,9 @@ public class TweetResource {
             error1.setMessage("Username header is missing!");
             
             return Response
-                .status(401).entity(error1)
+                .status(401)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(error1)
                 .build();
         }
         
@@ -62,7 +73,9 @@ public class TweetResource {
             error2.setMessage("Username does not follow the specified pattern!");
             
             return Response
-                .status(400).entity(error2)
+                .status(400)
+                .type(MediaType.APPLICATION_JSON_TYPE)    
+                .entity(error2)
                 .build();
         }
 
@@ -74,7 +87,9 @@ public class TweetResource {
             error3.setMessage("Request body is missing or incomplete!");
             
             return Response
-                .status(400).entity(error3)
+                .status(400)
+                .type(MediaType.APPLICATION_JSON_TYPE)    
+                .entity(error3)
                 .build();
         }
         
@@ -88,7 +103,9 @@ public class TweetResource {
             error4.setMessage("User does not exists!");
             
             return Response
-                .status(400).entity(error4)
+                .status(400)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(error4)
                 .build();
         }
         
@@ -132,13 +149,11 @@ public class TweetResource {
         tweetResp.setCreatedAt(tweet.getCreatedAt().toString());
 
         return Response
-            .status(201).entity(tweetResp)
+            .status(201)
+            .type(MediaType.APPLICATION_JSON_TYPE)   
+            .entity(tweetResp)
             .build();
     }
-    
-    
-    
-    
     
     @DELETE
     @Path("{tweetId}")
@@ -154,7 +169,9 @@ public class TweetResource {
             error1.setMessage("Username header is missing!");
             
             return Response
-                .status(401).entity(error1)
+                .status(401)
+                .type(MediaType.APPLICATION_JSON_TYPE)    
+                .entity(error1)
                 .build();
         }
         
@@ -169,7 +186,9 @@ public class TweetResource {
             error3.setMessage("Tweet not found!");
             
             return Response
-                .status(404).entity(error3)
+                .status(404)
+                .type(MediaType.APPLICATION_JSON_TYPE)    
+                .entity(error3)
                 .build();
         }
         
@@ -181,37 +200,154 @@ public class TweetResource {
             error2.setMessage("Somebody elses tweet!");
             
             return Response
-                .status(403).entity(error2)
+                .status(403)
+                .type(MediaType.APPLICATION_JSON_TYPE)    
+                .entity(error2)
                 .build();
         }
         
         List<Tweethashtag> thtList = em.createQuery("SELECT tht FROM Tweethashtag tht WHERE tht.idTwe = :id", Tweethashtag.class).setParameter("id", tweet).getResultList();
         
-        String []htArr = new String[5];
-        int i = 0;
+        ArrayList<String> htArr = new ArrayList<>();
         for (Tweethashtag tweethashtag : thtList) {
             Hashtag tag = tweethashtag.getIdTag();
-            htArr[i] = tag.getHashname();
-            i++;
+            htArr.add(tag.getHashname());
         }
         
-        
+        //Creating tweetResponse:
         TweetResp tweetResp = new TweetResp();
         tweetResp.setTweetId(tweet.getId());
         tweetResp.setTweetBody(tweet.getContent());
-        tweetResp.setHashTags(htArr);
+        tweetResp.setHashTags(htArr.toArray(new String[0]));
         tweetResp.setCreatedBy(username);
         tweetResp.setCreatedAt(tweet.getCreatedAt().toString());
         
         em.remove(tweet);
         return Response
-            .status(200).entity(tweetResp)
+            .status(200)
+            .type(MediaType.APPLICATION_JSON_TYPE)    
+            .entity(tweetResp)
             .build();
+    }
+    
+    //http://localhost:8080/v1/tweets?hashTag=#new,#gohard&username=brenda123&limit=10&offset=15
+    @GET
+    public Response getTweets(@Context HttpHeaders header, @Context UriInfo uriInfo, @QueryParam("hashTag") List<String> hashTagArray,
+        @QueryParam("username") List<String> usernameArray, @DefaultValue("50") @QueryParam("limit") int limit, 
+        @DefaultValue("0") @QueryParam("offset") int offset) 
+    {   
+        List<String> headerList = header.getRequestHeader("X-Username");
+        //String username;
         
+        //Username header check:
+        if(headerList == null || headerList.size() <= 0) {
+            schemas.Error error1 = new schemas.Error();
+            error1.setHttpCode(401);
+            error1.setErrorCode(401);
+            error1.setMessage("Username header is missing!");
+            
+            return Response
+                .status(401)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(error1)
+                .build();
+        }
+        
+        //Bad request check:
+        if(limit < 1 || limit > 100 || offset < 0) {
+             schemas.Error error2 = new schemas.Error();
+            error2.setHttpCode(401);
+            error2.setErrorCode(401);
+            error2.setMessage("Bad request, some of the specified parametars are not valid!");
+
+            return Response
+                .status(401)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(error2)
+                .build();
+        }
+        
+        if (usernameArray == null) {
+            usernameArray = new ArrayList<>();
+        }
+        if (hashTagArray == null) {
+            hashTagArray = new ArrayList<>();
+        }
+        
+        //Get tweets:
+        String query = "SELECT t FROM Tweet t WHERE 1<2 ";
+        
+        if (usernameArray.size() > 0) {
+            StringBuilder usernamesKeys = new StringBuilder();
+            
+            for (int i = 0;i<usernameArray.size();i++) {
+                usernamesKeys.append(":user").append(i).append(",");
+            }
+            usernamesKeys.deleteCharAt(usernamesKeys.length() - 1);
+            
+            String queryUsersFilter = "AND t.idUser.username IN (" + usernamesKeys.toString() + ")";
+            query += queryUsersFilter;
+        }
+        
+        if (hashTagArray.size() > 0) {
+            StringBuilder hashtagsKeys = new StringBuilder();
+            
+            for (int i = 0;i<hashTagArray.size();i++) {
+                hashtagsKeys.append(":ht").append(i).append(",");
+            }
+            hashtagsKeys.deleteCharAt(hashtagsKeys.length() - 1);
+            
+            String queryHashtags = " AND EXISTS (select tht from Tweethashtag tht where tht.idTwe.id=t.id and tht.idTag.hashname IN (" + hashtagsKeys + "))";
+            query += queryHashtags;
+        }
+        
+        TypedQuery<Tweet> createQuery = em.createQuery(query, Tweet.class);
+        
+        for (int i = 0;i < usernameArray.size();i++) {
+            createQuery.setParameter("user"+i, usernameArray.get(i));
+        }
+        for (int i = 0;i < hashTagArray.size();i++) {
+            createQuery.setParameter("ht"+i, hashTagArray.get(i));
+        }
+        createQuery.setMaxResults(limit + 1); //The last element is used for checking if there are more tweets for next page
+        createQuery.setFirstResult(offset);
+        
+        Stream<Tweet> resultStream = createQuery.getResultStream();
+        List<TweetResp> resultList = resultStream
+                .map(tweet -> 
+                    new TweetResp(tweet.getId(), 
+                            tweet.getContent(), 
+                            tweet.getIdUser().getUsername(), 
+                            tweet.getCreatedAt().toString(), 
+                            tweet.getTweethashtagList().stream().map(tag -> tag.getIdTag().getHashname()).toArray(s -> new String[s])))
+                .collect(Collectors.toList());
+        
+        TweetsPageResp tweetsPageResp = new TweetsPageResp();
+        if (resultList.size() == limit + 1) {
+            UriBuilder absolutePathBuilder = uriInfo.getRequestUriBuilder();
+            absolutePathBuilder.replaceQueryParam("offset", offset + limit);
+            tweetsPageResp.setNextPage(absolutePathBuilder.toString());
+            resultList.remove(limit);
+        }
+        tweetsPageResp.setTweets(resultList.toArray(new TweetResp[0]));
+         
+        return Response
+            .status(200)
+            .type(MediaType.APPLICATION_JSON_TYPE)    
+            .entity(tweetsPageResp)
+            .build();
     }
     
     
-    
-    
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
     
 }

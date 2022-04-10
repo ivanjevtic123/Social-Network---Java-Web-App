@@ -1,3 +1,4 @@
+schemas\TweetsPageResp.class
 schemas\PostTweetReq.class
 schemas\Error.class
 com\mycompany\v1\resources\TweetResource.class

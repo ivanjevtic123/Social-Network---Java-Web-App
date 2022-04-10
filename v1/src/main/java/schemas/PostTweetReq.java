@@ -5,6 +5,8 @@
  */
 package schemas;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import java.io.Serializable;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -20,23 +22,25 @@ public class PostTweetReq implements Serializable {
     private String tweetBody;
     private String []hashTags = new String[5];
 
+    @JsonGetter("tweetBody")
     public String getTweetBody() {
         return tweetBody;
     }
 
+    @JsonSetter("tweetBody")
     public void setTweetBody(String tweetBody) {
         this.tweetBody = tweetBody;
     }
 
+    @JsonGetter("hashTags")
     public String[] getHashTags() {
         return hashTags;
     }
 
     @XmlElementWrapper(name = "hashTags")
     @XmlElement(name = "hashTag")
+    @JsonSetter("hashTags")
     public void setHashTags(String[] hashTags) {
         this.hashTags = hashTags;
     }
-    
-    
 }
