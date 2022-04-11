@@ -29,7 +29,7 @@ CREATE TABLE `hashtag` (
   `hashname` varchar(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `hashname_UNIQUE` (`hashname`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +38,7 @@ CREATE TABLE `hashtag` (
 
 LOCK TABLES `hashtag` WRITE;
 /*!40000 ALTER TABLE `hashtag` DISABLE KEYS */;
-INSERT INTO `hashtag` VALUES (2,'blessed'),(1,'gohard');
+INSERT INTO `hashtag` VALUES (2,'#blessed'),(1,'#gohard'),(15,'#hashTags'),(13,'#new'),(14,'#new2'),(17,'#regexGood'),(16,'#sheesh');
 /*!40000 ALTER TABLE `hashtag` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -57,7 +57,7 @@ CREATE TABLE `tweet` (
   PRIMARY KEY (`id`),
   KEY `FK_tweet_idUser_idx` (`idUser`),
   CONSTRAINT `FK_tweet_idUser` FOREIGN KEY (`idUser`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,7 +66,7 @@ CREATE TABLE `tweet` (
 
 LOCK TABLES `tweet` WRITE;
 /*!40000 ALTER TABLE `tweet` DISABLE KEYS */;
-INSERT INTO `tweet` VALUES (1,'test content 1','2020-09-01 21:02:00',4),(2,'test content 2','2020-10-11 22:05:00',4);
+INSERT INTO `tweet` VALUES (1,'test content 1','2020-09-01 21:02:00',3),(2,'test content 2','2020-10-11 22:05:00',4),(3,'test content 3','2020-10-11 22:05:00',2),(4,'test content 4','2020-10-11 22:05:00',2),(35,'scott first tweet','2022-04-11 17:10:42',3),(39,'marry tweeted first','2022-04-11 19:52:30',5),(40,'mary tweet 2','2022-04-11 19:54:47',5);
 /*!40000 ALTER TABLE `tweet` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -86,7 +86,7 @@ CREATE TABLE `tweethashtag` (
   KEY `FK_tht_idTwe_idx` (`idTwe`),
   CONSTRAINT `FK_tht_idTag` FOREIGN KEY (`idTag`) REFERENCES `hashtag` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_tht_idTwe` FOREIGN KEY (`idTwe`) REFERENCES `tweet` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,7 +95,7 @@ CREATE TABLE `tweethashtag` (
 
 LOCK TABLES `tweethashtag` WRITE;
 /*!40000 ALTER TABLE `tweethashtag` DISABLE KEYS */;
-INSERT INTO `tweethashtag` VALUES (1,1,1),(2,1,2);
+INSERT INTO `tweethashtag` VALUES (1,2,1),(2,1,2),(3,1,3),(4,13,1),(37,13,35),(38,16,35),(47,13,39),(48,1,39),(49,13,40),(50,2,40);
 /*!40000 ALTER TABLE `tweethashtag` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -111,7 +111,7 @@ CREATE TABLE `user` (
   `username` varchar(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,7 +120,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (4,'annecole'),(2,'brenda123'),(1,'mayahoward'),(3,'scottgreen123');
+INSERT INTO `user` VALUES (4,'annecole555'),(2,'brenda123'),(5,'marry123'),(1,'mayahoward22'),(3,'scottgreen123');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -133,4 +133,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-09  1:35:21
+-- Dump completed on 2022-04-11 19:57:48
