@@ -19,6 +19,7 @@ import java.util.Objects;
  *
  * @author ji180550d
  */
+@XmlRootElement(name = "postTweetReq")
 public class Error {
     private int httpCode;
     private int errorCode;

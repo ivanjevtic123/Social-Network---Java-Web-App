@@ -45,21 +45,21 @@ public class TweetResource {
     EntityManager em;
     
     @POST
-    public Response postNewTweet(@Context HttpHeaders header, PostTweetReq postTweetReq){ //http://localhost:8080/v1/v1/tweets
+    public Response postNewTweet(@Context HttpHeaders header, PostTweetReq postTweetReq){
         List<String> headerList = header.getRequestHeader("X-Username");
         String username; 
         
         //Username header check:
         if(headerList == null || headerList.size() <= 0) {
-            schemas.Error error1 = new schemas.Error();
-            error1.setHttpCode(401);
-            error1.setErrorCode(401);
-            error1.setMessage("Username header is missing!");
+            schemas.Error errorHeader = new schemas.Error();
+            errorHeader.setHttpCode(401);
+            errorHeader.setErrorCode(401);
+            errorHeader.setMessage("Username header is missing!");
             
             return Response
                 .status(401)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(error1)
+                .entity(errorHeader)
                 .build();
         }
         
@@ -67,49 +67,80 @@ public class TweetResource {
         
         //Username regex check:
         if(!username.matches("^[a-zA-Z0-9_]{4,32}$")) {
-            schemas.Error error2 = new schemas.Error();
-            error2.setHttpCode(400);
-            error2.setErrorCode(421); 
-            error2.setMessage("Username does not follow the specified pattern!");
+            schemas.Error errorRegex = new schemas.Error();
+            errorRegex.setHttpCode(400);
+            errorRegex.setErrorCode(421); 
+            errorRegex.setMessage("Username does not follow the specified pattern!");
             
             return Response
                 .status(400)
                 .type(MediaType.APPLICATION_JSON_TYPE)    
-                .entity(error2)
+                .entity(errorRegex)
                 .build();
         }
 
         //Request body check:
         if(postTweetReq == null || postTweetReq.getTweetBody() == null || postTweetReq.getHashTags() == null || postTweetReq.getHashTags().length == 0) {
-            schemas.Error error3 = new schemas.Error();
-            error3.setHttpCode(400);
-            error3.setErrorCode(422); 
-            error3.setMessage("Request body is missing or incomplete!");
+            schemas.Error errorRequestBody = new schemas.Error();
+            errorRequestBody.setHttpCode(400);
+            errorRequestBody.setErrorCode(422); 
+            errorRequestBody.setMessage("Request body is missing or incomplete!");
             
             return Response
                 .status(400)
                 .type(MediaType.APPLICATION_JSON_TYPE)    
-                .entity(error3)
+                .entity(errorRequestBody)
                 .build();
         }
         
+        //User search, and User does not exists check:
         User user;
         try {
             user = em.createNamedQuery("User.findByUsername", User.class).setParameter("username", username).getSingleResult();
         } catch(javax.persistence.NoResultException exc) {
-            schemas.Error error4 = new schemas.Error();
-            error4.setHttpCode(400);
-            error4.setErrorCode(423); 
-            error4.setMessage("User does not exists!");
+            schemas.Error errorUserNotExists = new schemas.Error();
+            errorUserNotExists.setHttpCode(400);
+            errorUserNotExists.setErrorCode(423); 
+            errorUserNotExists.setMessage("User does not exists!");
             
             return Response
                 .status(400)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(error4)
+                .entity(errorUserNotExists)
                 .build();
         }
         
-        //Creating new Tweet
+        //Tweet body check:
+        if(postTweetReq.getTweetBody().length() > 320) {
+            schemas.Error errorTweetBody = new schemas.Error();
+            errorTweetBody.setHttpCode(400);
+            errorTweetBody.setErrorCode(424); 
+            errorTweetBody.setMessage("Tweet body is too long!");
+            
+            return Response
+                .status(400)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(errorTweetBody)
+                .build();
+        }
+        
+        //Tweet hashtags regex check:
+        for (String hashTagElem : postTweetReq.getHashTags()) {
+            if(!hashTagElem.matches("^#[a-zA-Z]{2,16}$")) {
+                schemas.Error errorTweetHashTag = new schemas.Error();
+                errorTweetHashTag.setHttpCode(400);
+                errorTweetHashTag.setErrorCode(425); 
+                errorTweetHashTag.setMessage("Hashtag does not follow the specified pattern!");
+
+                return Response
+                    .status(400)
+                    .type(MediaType.APPLICATION_JSON_TYPE)    
+                    .entity(errorTweetHashTag)
+                    .build();
+            }
+        }
+        
+        //Creating new Tweet:
         Tweet tweet = new Tweet();
         tweet.setId(em.createQuery("select max(t.id) from Tweet t", Integer.class).getSingleResult() + 1);
         tweet.setContent(postTweetReq.getTweetBody());
@@ -117,7 +148,7 @@ public class TweetResource {
         tweet.setCreatedAt(Date.from(Instant.now()));
         em.persist(tweet);
 
-        //Creating new HashTags, if they were not existing
+        //Creating new HashTags, if they were not existing:
         for (String hashTag : postTweetReq.getHashTags()) {
             try {
                 em.createNamedQuery("Hashtag.findByHashname").setParameter("hashname", hashTag).getSingleResult();
@@ -163,46 +194,77 @@ public class TweetResource {
         
         //Username header check:
         if(headerList == null || headerList.size() <= 0) {
-            schemas.Error error1 = new schemas.Error();
-            error1.setHttpCode(401);
-            error1.setErrorCode(401);
-            error1.setMessage("Username header is missing!");
+            schemas.Error errorHeader = new schemas.Error();
+            errorHeader.setHttpCode(401);
+            errorHeader.setErrorCode(401);
+            errorHeader.setMessage("Username header is missing!");
             
             return Response
                 .status(401)
                 .type(MediaType.APPLICATION_JSON_TYPE)    
-                .entity(error1)
+                .entity(errorHeader)
                 .build();
         }
         
         username = headerList.get(0);
-        User user = em.createNamedQuery("User.findByUsername", User.class).setParameter("username", username).getSingleResult();         
+        
+        //Username Regex check:
+        if(!username.matches("^[a-zA-Z0-9_]{4,32}$")) {
+            schemas.Error errorRegex = new schemas.Error();
+            errorRegex.setHttpCode(403);
+            errorRegex.setErrorCode(423); 
+            errorRegex.setMessage("Username does not follow the specified pattern!");
+            
+            return Response
+                .status(403)
+                .type(MediaType.APPLICATION_JSON_TYPE)    
+                .entity(errorRegex)
+                .build();
+        }
+        
+        //User search, and User does not exists check:
+        User user;
+        try {
+            user = em.createNamedQuery("User.findByUsername", User.class).setParameter("username", username).getSingleResult();
+        } catch(javax.persistence.NoResultException exc) {
+            schemas.Error errorUserNotExists = new schemas.Error();
+            errorUserNotExists.setHttpCode(403);
+            errorUserNotExists.setErrorCode(422); 
+            errorUserNotExists.setMessage("User does not exists!");
+            
+            return Response
+                .status(403)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(errorUserNotExists)
+                .build();
+        }
+        
         
         Tweet tweet = em.find(Tweet.class, Integer.parseInt(tweetId));
         if(tweet == null) {
-            schemas.Error error3 = new schemas.Error();
-            error3.setHttpCode(404);
-            error3.setErrorCode(404);
-            error3.setMessage("Tweet not found!");
+            schemas.Error errorTweetNotFound = new schemas.Error();
+            errorTweetNotFound.setHttpCode(404);
+            errorTweetNotFound.setErrorCode(404);
+            errorTweetNotFound.setMessage("Tweet not found!");
             
             return Response
                 .status(404)
                 .type(MediaType.APPLICATION_JSON_TYPE)    
-                .entity(error3)
+                .entity(errorTweetNotFound)
                 .build();
         }
         
         //Somebody elses tweet check:
         if(tweet.getIdUser() != user) {
-            schemas.Error error2 = new schemas.Error();
-            error2.setHttpCode(403);
-            error2.setErrorCode(403);
-            error2.setMessage("Somebody elses tweet!");
+            schemas.Error errorOtherUser = new schemas.Error();
+            errorOtherUser.setHttpCode(403);
+            errorOtherUser.setErrorCode(421);
+            errorOtherUser.setMessage("Somebody elses tweet!");
             
             return Response
                 .status(403)
                 .type(MediaType.APPLICATION_JSON_TYPE)    
-                .entity(error2)
+                .entity(errorOtherUser)
                 .build();
         }
         
@@ -230,7 +292,6 @@ public class TweetResource {
             .build();
     }
     
-    //http://localhost:8080/v1/tweets?hashTag=#new,#gohard&username=brenda123&limit=10&offset=15
     @GET
     public Response getTweets(@Context HttpHeaders header, @Context UriInfo uriInfo, @QueryParam("hashTag") List<String> hashTagArray,
         @QueryParam("username") List<String> usernameArray, @DefaultValue("50") @QueryParam("limit") int limit, 
@@ -241,29 +302,29 @@ public class TweetResource {
         
         //Username header check:
         if(headerList == null || headerList.size() <= 0) {
-            schemas.Error error1 = new schemas.Error();
-            error1.setHttpCode(401);
-            error1.setErrorCode(401);
-            error1.setMessage("Username header is missing!");
+            schemas.Error errorHeader = new schemas.Error();
+            errorHeader.setHttpCode(401);
+            errorHeader.setErrorCode(401);
+            errorHeader.setMessage("Username header is missing!");
             
             return Response
                 .status(401)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(error1)
+                .entity(errorHeader)
                 .build();
         }
         
         //Bad request check:
         if(limit < 1 || limit > 100 || offset < 0) {
-             schemas.Error error2 = new schemas.Error();
-            error2.setHttpCode(401);
-            error2.setErrorCode(401);
-            error2.setMessage("Bad request, some of the specified parametars are not valid!");
+             schemas.Error errorLimitOffset = new schemas.Error();
+            errorLimitOffset.setHttpCode(401);
+            errorLimitOffset.setErrorCode(401);
+            errorLimitOffset.setMessage("Bad request, some of the specified parametars are not valid!");
 
             return Response
                 .status(401)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(error2)
+                .entity(errorLimitOffset)
                 .build();
         }
         
@@ -338,16 +399,5 @@ public class TweetResource {
             .build();
     }
     
-    
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
     
 }
